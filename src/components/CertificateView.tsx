@@ -3,12 +3,12 @@ import { Award, Download, Share2, CheckCircle2 } from "lucide-react";
 
 const CertificateView = () => {
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-display font-bold text-foreground">
+        <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
           Your Certificates
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-sm sm:text-base text-muted-foreground mt-1">
           Download your earned certificates of completion.
         </p>
       </div>
@@ -20,7 +20,7 @@ const CertificateView = () => {
         className="bg-card rounded-2xl shadow-elevated overflow-hidden"
       >
         {/* Certificate Preview */}
-        <div className="gradient-hero p-8 text-center relative overflow-hidden">
+        <div className="gradient-hero p-5 sm:p-8 text-center relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             {Array.from({ length: 20 }).map((_, i) => (
               <div
@@ -34,11 +34,11 @@ const CertificateView = () => {
             ))}
           </div>
           <div className="relative z-10">
-            <Award className="w-16 h-16 text-accent mx-auto mb-4" />
+            <Award className="w-12 h-12 sm:w-16 sm:h-16 text-accent mx-auto mb-3 sm:mb-4" />
             <p className="text-xs text-primary-foreground/60 uppercase tracking-widest mb-2">
               Certificate of Completion
             </p>
-            <h2 className="text-2xl font-display font-bold text-primary-foreground mb-1">
+            <h2 className="text-xl sm:text-2xl font-display font-bold text-primary-foreground mb-1">
               Foundations of School Leadership
             </h2>
             <p className="text-sm text-primary-foreground/70 mb-4">

@@ -87,7 +87,7 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
     showResult && (score / quiz.questions.length) * 100 >= quiz.passThreshold;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-full">
+    <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 h-full">
       {/* Main Video Area */}
       <div className="flex-1 min-w-0">
         {/* Video Player */}
@@ -149,7 +149,7 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
         <div className="mt-4">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-xl font-display font-bold text-foreground">
+              <h1 className="text-base sm:text-xl font-display font-bold text-foreground">
                 {lesson.title}
               </h1>
               <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
@@ -175,7 +175,7 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
       </div>
 
       {/* Right Sidebar - Quiz & Attachments */}
-      <div className="w-full lg:w-80 shrink-0 flex flex-col gap-4">
+      <div className="w-full lg:w-80 shrink-0 flex flex-col gap-3 sm:gap-4">
         {/* Attachments */}
         <div className="bg-card rounded-xl p-4 shadow-card">
           <h3 className="font-display font-bold text-foreground mb-3">Attachments</h3>

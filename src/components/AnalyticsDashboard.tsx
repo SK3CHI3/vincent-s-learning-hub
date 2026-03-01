@@ -45,42 +45,42 @@ const AnalyticsDashboard = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-display font-bold text-foreground">
+        <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
           Analytics Dashboard
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-sm sm:text-base text-muted-foreground mt-1">
           Track learner engagement and performance.
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-card rounded-xl p-4 shadow-card"
+            className="bg-card rounded-xl p-3 sm:p-4 shadow-card"
           >
             <div className="flex items-center justify-between mb-2">
-              <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center">
-                <stat.icon className="w-5 h-5 text-primary-foreground" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg gradient-primary flex items-center justify-center shrink-0">
+                <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
               </div>
-              <span className="flex items-center text-xs font-medium text-success">
+              <span className="flex items-center text-[10px] sm:text-xs font-medium text-success">
                 <ArrowUpRight className="w-3 h-3" />
                 {stat.change}
               </span>
             </div>
-            <p className="text-2xl font-bold font-display text-foreground">{stat.value}</p>
-            <p className="text-xs text-muted-foreground">{stat.label}</p>
+            <p className="text-lg sm:text-2xl font-bold font-display text-foreground">{stat.value}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">{stat.label}</p>
           </motion.div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Engagement Chart */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -150,7 +150,7 @@ const AnalyticsDashboard = () => {
       </div>
 
       {/* Module Performance & Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
