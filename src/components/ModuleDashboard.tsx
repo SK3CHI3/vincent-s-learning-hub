@@ -9,19 +9,19 @@ interface ModuleDashboardProps {
 
 const ModuleDashboard = ({ onSelectLesson }: ModuleDashboardProps) => {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-display font-bold text-foreground">
+        <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
           Welcome back, Learner
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-sm sm:text-base text-muted-foreground mt-1">
           Continue your journey with Vincent's leadership training.
         </p>
       </div>
 
       {/* Progress Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {[
           { label: "Modules", value: "1", icon: BookOpen, color: "gradient-primary" },
           { label: "Lessons Completed", value: "1/3", icon: CheckCircle2, color: "gradient-accent" },
@@ -32,13 +32,13 @@ const ModuleDashboard = ({ onSelectLesson }: ModuleDashboardProps) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-card rounded-xl p-4 shadow-card flex items-center gap-4"
+            className="bg-card rounded-xl p-3 sm:p-4 shadow-card flex items-center gap-3 sm:gap-4"
           >
-            <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center", stat.color)}>
-              <stat.icon className="w-6 h-6 text-primary-foreground" />
+            <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center shrink-0", stat.color)}>
+              <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
             </div>
             <div>
-              <p className="text-2xl font-bold font-display text-foreground">{stat.value}</p>
+              <p className="text-xl sm:text-2xl font-bold font-display text-foreground">{stat.value}</p>
               <p className="text-xs text-muted-foreground">{stat.label}</p>
             </div>
           </motion.div>
@@ -48,15 +48,15 @@ const ModuleDashboard = ({ onSelectLesson }: ModuleDashboardProps) => {
       {/* Modules */}
       {modules.map((module) => (
         <div key={module.id}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
             <div>
-              <h2 className="text-xl font-display font-bold text-foreground">
+              <h2 className="text-lg sm:text-xl font-display font-bold text-foreground">
                 {module.title}
               </h2>
-              <p className="text-sm text-muted-foreground">{module.description}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">{module.description}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-20 sm:w-24 h-2 bg-muted rounded-full overflow-hidden">
                 <div
                   className="h-full gradient-accent rounded-full"
                   style={{ width: `${module.progress}%` }}
