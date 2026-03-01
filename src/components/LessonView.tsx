@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Play,
@@ -6,7 +6,7 @@ import {
   Volume2,
   VolumeX,
   Maximize,
-  SkipForward,
+  Minimize,
   ThumbsUp,
   Share2,
   Download,
@@ -24,19 +24,33 @@ interface LessonViewProps {
   onComplete: () => void;
 }
 
+const parseDuration = (duration: string): number => {
+  const parts = duration.split(":").map(Number);
+  return parts[0] * 60 + parts[1];
+};
+
+const formatTime = (totalSeconds: number): string => {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = Math.floor(totalSeconds % 60);
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+};
+
 const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [showQuiz, setShowQuiz] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<boolean[]>([]);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
 
   const quiz = quizzes[lesson.id];
+  const totalSeconds = parseDuration(lesson.duration);
+  const currentSeconds = (progress / 100) * totalSeconds;
 
   const handlePlay = () => {
     setIsPlaying(!isPlaying);
@@ -54,6 +68,36 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
     } else {
       if (progressInterval.current) clearInterval(progressInterval.current);
     }
+  };
+
+  const handleFullscreen = useCallback(async () => {
+    if (!videoContainerRef.current) return;
+    try {
+      if (!document.fullscreenElement) {
+        await videoContainerRef.current.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.log("Fullscreen not supported");
+    }
+  }, []);
+
+  const handleDownloadNotes = () => {
+    // Generate a simple text-based PDF-like download
+    const content = `${lesson.title}\n\nLesson Notes - Vincent AI Training (IDPF)\n\n${lesson.description}\n\nKey Takeaways:\n- Focus on practical, community-based approaches\n- Engage all stakeholders in the learning process\n- Apply leadership principles to real school challenges\n- Build sustainable systems for long-term impact\n\nQuiz Questions:\n${quiz.questions.map((q, i) => `${i + 1}. ${q.question}\n   Answer: ${q.options[q.correctIndex]}\n   ${q.explanation}`).join("\n\n")}`;
+    
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${lesson.title.replace(/\s+/g, "_")}_Notes.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleAnswerSelect = (index: number) => {
@@ -91,7 +135,13 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
       {/* Main Video Area */}
       <div className="flex-1 min-w-0">
         {/* Video Player */}
-        <div className="relative rounded-xl overflow-hidden bg-primary shadow-elevated group">
+        <div
+          ref={videoContainerRef}
+          className={cn(
+            "relative rounded-xl overflow-hidden bg-primary shadow-elevated group",
+            isFullscreen && "rounded-none"
+          )}
+        >
           <img
             src={lesson.thumbnail}
             alt={lesson.title}
@@ -105,40 +155,40 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
             <motion.div
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              className="w-16 h-16 rounded-full bg-accent flex items-center justify-center shadow-glow"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-accent flex items-center justify-center shadow-glow"
             >
               {isPlaying ? (
-                <Pause className="w-7 h-7 text-accent-foreground" />
+                <Pause className="w-6 h-6 sm:w-7 sm:h-7 text-accent-foreground" />
               ) : (
-                <Play className="w-7 h-7 text-accent-foreground ml-1" />
+                <Play className="w-6 h-6 sm:w-7 sm:h-7 text-accent-foreground ml-1" />
               )}
             </motion.div>
           </div>
 
           {/* Controls bar */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-primary/90 to-transparent p-4">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-primary/90 to-transparent p-3 sm:p-4">
             {/* Progress */}
-            <div className="w-full h-1 bg-primary-foreground/20 rounded-full mb-3 cursor-pointer">
+            <div className="w-full h-1 bg-primary-foreground/20 rounded-full mb-2 sm:mb-3 cursor-pointer">
               <div
                 className="h-full gradient-accent rounded-full transition-all duration-200"
                 style={{ width: `${progress}%` }}
               />
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <button onClick={handlePlay} className="text-primary-foreground hover:text-accent transition-colors">
-                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                  {isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </button>
-                <span className="text-xs text-primary-foreground/80 font-body">
-                  {Math.floor((progress / 100) * 300)}s / {lesson.duration}
+                <span className="text-[10px] sm:text-xs text-primary-foreground/80 font-body">
+                  {formatTime(currentSeconds)} / {lesson.duration}
                 </span>
                 <button onClick={() => setIsMuted(!isMuted)} className="text-primary-foreground hover:text-accent transition-colors">
-                  {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                  {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </button>
               </div>
-              <div className="flex items-center gap-3">
-                <button className="text-primary-foreground hover:text-accent transition-colors">
-                  <Maximize className="w-5 h-5" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button onClick={handleFullscreen} className="text-primary-foreground hover:text-accent transition-colors">
+                  {isFullscreen ? <Minimize className="w-4 h-4 sm:w-5 sm:h-5" /> : <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </button>
               </div>
             </div>
@@ -146,29 +196,29 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
         </div>
 
         {/* Lesson Info */}
-        <div className="mt-4">
-          <div className="flex items-start justify-between">
+        <div className="mt-3 sm:mt-4">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
             <div>
               <h1 className="text-base sm:text-xl font-display font-bold text-foreground">
                 {lesson.title}
               </h1>
-              <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-                <span className="w-8 h-8 rounded-full gradient-accent flex items-center justify-center text-xs font-bold text-accent-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full gradient-accent flex items-center justify-center text-xs font-bold text-accent-foreground shrink-0">
                   V
                 </span>
                 by Vincent • IDPF
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors text-sm">
-                <ThumbsUp className="w-4 h-4" /> 145
+            <div className="flex items-center gap-2 shrink-0">
+              <button className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors text-xs sm:text-sm">
+                <ThumbsUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> 145
               </button>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors text-sm">
-                <Share2 className="w-4 h-4" />
+              <button className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors text-xs sm:text-sm">
+                <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-3 leading-relaxed">
             {lesson.description}
           </p>
         </div>
@@ -177,53 +227,56 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
       {/* Right Sidebar - Quiz & Attachments */}
       <div className="w-full lg:w-80 shrink-0 flex flex-col gap-3 sm:gap-4">
         {/* Attachments */}
-        <div className="bg-card rounded-xl p-4 shadow-card">
-          <h3 className="font-display font-bold text-foreground mb-3">Attachments</h3>
-          <div className="space-y-3">
-            <button className="flex items-center gap-3 w-full p-3 rounded-lg bg-muted hover:bg-accent/20 transition-colors text-left">
-              <div className="w-10 h-10 rounded-lg gradient-accent flex items-center justify-center">
-                <FileText className="w-5 h-5 text-accent-foreground" />
+        <div className="bg-card rounded-xl p-3 sm:p-4 shadow-card">
+          <h3 className="font-display font-bold text-foreground mb-3 text-sm sm:text-base">Attachments</h3>
+          <div className="space-y-2 sm:space-y-3">
+            <button
+              onClick={handleDownloadNotes}
+              className="flex items-center gap-3 w-full p-2.5 sm:p-3 rounded-lg bg-muted hover:bg-accent/20 transition-colors text-left"
+            >
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg gradient-accent flex items-center justify-center shrink-0">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-accent-foreground" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">Lesson Notes</p>
-                <p className="text-xs text-muted-foreground">PDF • 0.8 MB</p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-foreground">Lesson Notes</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">TXT • Download</p>
               </div>
-              <Download className="w-4 h-4 text-muted-foreground ml-auto" />
+              <Download className="w-4 h-4 text-muted-foreground ml-auto shrink-0" />
             </button>
-            <button className="flex items-center gap-3 w-full p-3 rounded-lg bg-muted hover:bg-accent/20 transition-colors text-left">
-              <div className="w-10 h-10 rounded-lg bg-success flex items-center justify-center">
-                <HelpCircle className="w-5 h-5 text-success-foreground" />
+            <button className="flex items-center gap-3 w-full p-2.5 sm:p-3 rounded-lg bg-muted hover:bg-accent/20 transition-colors text-left">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-success flex items-center justify-center shrink-0">
+                <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5 text-success-foreground" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">Quiz</p>
-                <p className="text-xs text-muted-foreground">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-foreground">Quiz</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   {quiz.questions.length} questions
                 </p>
               </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto shrink-0" />
             </button>
           </div>
         </div>
 
         {/* Quiz Panel */}
-        <div className="bg-card rounded-xl p-4 shadow-card flex-1">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display font-bold text-foreground">
+        <div className="bg-card rounded-xl p-3 sm:p-4 shadow-card flex-1">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="font-display font-bold text-foreground text-sm sm:text-base">
               Lesson Quiz
             </h3>
             {progress < 80 && (
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+              <span className="text-[10px] sm:text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
                 Watch 80% to unlock
               </span>
             )}
           </div>
 
           {progress < 80 ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-                <HelpCircle className="w-8 h-8 text-muted-foreground" />
+            <div className="text-center py-6 sm:py-8">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                <HelpCircle className="w-7 h-7 sm:w-8 sm:h-8 text-muted-foreground" />
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Watch at least 80% of the video to unlock the quiz.
               </p>
               <div className="mt-3 w-full h-2 bg-muted rounded-full overflow-hidden">
@@ -244,20 +297,20 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
             >
               <div
                 className={cn(
-                  "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-3",
+                  "w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-3",
                   quizPassed ? "bg-success/10" : "bg-destructive/10"
                 )}
               >
                 {quizPassed ? (
-                  <CheckCircle2 className="w-10 h-10 text-success" />
+                  <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-success" />
                 ) : (
-                  <XCircle className="w-10 h-10 text-destructive" />
+                  <XCircle className="w-8 h-8 sm:w-10 sm:h-10 text-destructive" />
                 )}
               </div>
-              <h4 className="font-display font-bold text-lg text-foreground">
+              <h4 className="font-display font-bold text-base sm:text-lg text-foreground">
                 {quizPassed ? "Congratulations!" : "Try Again"}
               </h4>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 Score: {Math.round((score / quiz.questions.length) * 100)}%
               </p>
               <p className="text-xs text-muted-foreground">
@@ -281,7 +334,7 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
             </motion.div>
           ) : (
             <div>
-              <div className="flex gap-1 mb-4">
+              <div className="flex gap-1 mb-3 sm:mb-4">
                 {quiz.questions.map((_, i) => (
                   <div
                     key={i}
@@ -296,10 +349,10 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
                   />
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground mb-2">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
                 Question {currentQuestion + 1} of {quiz.questions.length}
               </p>
-              <p className="text-sm font-medium text-foreground mb-4">
+              <p className="text-xs sm:text-sm font-medium text-foreground mb-3 sm:mb-4">
                 {quiz.questions[currentQuestion].question}
               </p>
               <div className="space-y-2">
@@ -313,7 +366,7 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
                       key={i}
                       onClick={() => handleAnswerSelect(i)}
                       className={cn(
-                        "w-full text-left p-3 rounded-lg border text-sm transition-all",
+                        "w-full text-left p-2.5 sm:p-3 rounded-lg border text-xs sm:text-sm transition-all",
                         showFeedback && isCorrect
                           ? "border-success bg-success/10 text-foreground"
                           : showFeedback && isSelected && !isCorrect
@@ -335,12 +388,12 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
                   animate={{ opacity: 1, height: "auto" }}
                   className="mt-3"
                 >
-                  <p className="text-xs text-muted-foreground bg-muted p-2 rounded-lg">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground bg-muted p-2 rounded-lg">
                     {quiz.questions[currentQuestion].explanation}
                   </p>
                   <button
                     onClick={handleNextQuestion}
-                    className="mt-3 w-full py-2 gradient-accent text-accent-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+                    className="mt-3 w-full py-2 gradient-accent text-accent-foreground rounded-lg text-xs sm:text-sm font-medium hover:opacity-90 transition-opacity"
                   >
                     {currentQuestion < quiz.questions.length - 1
                       ? "Next Question"

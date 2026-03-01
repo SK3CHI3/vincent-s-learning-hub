@@ -4,6 +4,7 @@ import AppSidebar from "@/components/AppSidebar";
 import ModuleDashboard from "@/components/ModuleDashboard";
 import LessonView from "@/components/LessonView";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import AdminDashboard from "@/components/AdminDashboard";
 import CertificateView from "@/components/CertificateView";
 import RoleSelector, { UserRole } from "@/components/RoleSelector";
 import { Lesson, modules } from "@/data/courseData";
@@ -41,6 +42,17 @@ const Index = () => {
   }
 
   const renderContent = () => {
+    if (role === "admin") {
+      switch (activeView) {
+        case "dashboard":
+          return <AdminDashboard />;
+        case "analytics":
+          return <AnalyticsDashboard />;
+        default:
+          return <AdminDashboard />;
+      }
+    }
+
     switch (activeView) {
       case "dashboard":
         return <ModuleDashboard onSelectLesson={handleSelectLesson} />;
@@ -51,8 +63,6 @@ const Index = () => {
             onComplete={() => setActiveView("certificate")}
           />
         ) : null;
-      case "analytics":
-        return <AnalyticsDashboard />;
       case "certificate":
         return <CertificateView />;
       default:
