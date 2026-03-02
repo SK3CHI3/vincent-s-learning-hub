@@ -3,7 +3,6 @@ import { Search, Bell } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import ModuleDashboard from "@/components/ModuleDashboard";
 import LessonView from "@/components/LessonView";
-import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import AdminDashboard from "@/components/AdminDashboard";
 import CertificateView from "@/components/CertificateView";
 import RoleSelector, { UserRole } from "@/components/RoleSelector";
@@ -28,7 +27,7 @@ const Index = () => {
 
   const handleRoleSelect = (selectedRole: UserRole) => {
     setRole(selectedRole);
-    setActiveView(selectedRole === "admin" ? "analytics" : "dashboard");
+    setActiveView(selectedRole === "admin" ? "dashboard" : "dashboard");
   };
 
   const handleLogout = () => {
@@ -43,14 +42,7 @@ const Index = () => {
 
   const renderContent = () => {
     if (role === "admin") {
-      switch (activeView) {
-        case "dashboard":
-          return <AdminDashboard />;
-        case "analytics":
-          return <AnalyticsDashboard />;
-        default:
-          return <AdminDashboard />;
-      }
+      return <AdminDashboard />;
     }
 
     switch (activeView) {

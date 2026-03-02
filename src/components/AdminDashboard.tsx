@@ -19,7 +19,9 @@ import {
   Award,
   BookOpen,
   ArrowUpRight,
-  LayoutGrid,
+  CheckCircle2,
+  XCircle,
+  Clock,
 } from "lucide-react";
 import { analyticsData, modules } from "@/data/courseData";
 import { cn } from "@/lib/utils";
@@ -35,6 +37,16 @@ const pieData = [
   { name: "Completed", value: 73 },
   { name: "In Progress", value: 18 },
   { name: "Not Started", value: 9 },
+];
+
+const quizDetailData = [
+  { learner: "Kwame A.", lesson: "Introduction to School Leadership", score: 90, attempts: 1, status: "passed", date: "Feb 28, 2026" },
+  { learner: "Ama B.", lesson: "Building a Learning Community", score: 85, attempts: 1, status: "passed", date: "Feb 27, 2026" },
+  { learner: "Kofi M.", lesson: "Resource Management for Schools", score: 60, attempts: 2, status: "failed", date: "Feb 27, 2026" },
+  { learner: "Abena S.", lesson: "Introduction to School Leadership", score: 95, attempts: 1, status: "passed", date: "Feb 26, 2026" },
+  { learner: "Yaw K.", lesson: "Introduction to School Leadership", score: 75, attempts: 3, status: "passed", date: "Feb 25, 2026" },
+  { learner: "Efua D.", lesson: "Building a Learning Community", score: 50, attempts: 1, status: "failed", date: "Feb 25, 2026" },
+  { learner: "Nana O.", lesson: "Resource Management for Schools", score: 80, attempts: 2, status: "passed", date: "Feb 24, 2026" },
 ];
 
 const AdminDashboard = () => {
@@ -80,38 +92,6 @@ const AdminDashboard = () => {
           </motion.div>
         ))}
       </div>
-
-      {/* Module Overview for Admin */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-card rounded-xl p-3 sm:p-4 shadow-card"
-      >
-        <h3 className="font-display font-bold text-foreground mb-3 text-sm sm:text-base flex items-center gap-2">
-          <LayoutGrid className="w-4 h-4 text-muted-foreground" />
-          Modules Overview
-        </h3>
-        <div className="space-y-3">
-          {modules.map((module) => (
-            <div key={module.id} className="flex items-center gap-3 p-2 sm:p-3 rounded-lg bg-muted/50">
-              <div className="w-10 h-10 rounded-lg gradient-accent flex items-center justify-center shrink-0">
-                <BookOpen className="w-5 h-5 text-accent-foreground" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-foreground truncate">{module.title}</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">{module.lessons.length} lessons</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="w-16 sm:w-24 h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full gradient-accent rounded-full" style={{ width: `${module.progress}%` }} />
-                </div>
-                <span className="text-[10px] sm:text-xs text-muted-foreground font-medium w-8 text-right">{module.progress}%</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Engagement Chart */}
@@ -182,16 +162,89 @@ const AdminDashboard = () => {
         </motion.div>
       </div>
 
-      {/* Quiz Performance & Activity */}
+      {/* Quiz Performance Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="bg-card rounded-xl shadow-card overflow-hidden"
+      >
+        <div className="p-3 sm:p-4 border-b border-border">
+          <h3 className="font-display font-bold text-foreground text-sm sm:text-base">
+            Quiz Performance Details
+          </h3>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">Individual learner quiz results</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs sm:text-sm">
+            <thead>
+              <tr className="bg-muted/50">
+                <th className="text-left font-medium text-muted-foreground px-3 sm:px-4 py-2.5">Learner</th>
+                <th className="text-left font-medium text-muted-foreground px-3 sm:px-4 py-2.5 hidden sm:table-cell">Lesson</th>
+                <th className="text-center font-medium text-muted-foreground px-3 sm:px-4 py-2.5">Score</th>
+                <th className="text-center font-medium text-muted-foreground px-3 sm:px-4 py-2.5 hidden sm:table-cell">Attempts</th>
+                <th className="text-center font-medium text-muted-foreground px-3 sm:px-4 py-2.5">Status</th>
+                <th className="text-right font-medium text-muted-foreground px-3 sm:px-4 py-2.5 hidden md:table-cell">Date</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {quizDetailData.map((row, i) => (
+                <tr key={i} className="hover:bg-muted/30 transition-colors">
+                  <td className="px-3 sm:px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full gradient-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground shrink-0">
+                        {row.learner.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{row.learner}</p>
+                        <p className="text-[10px] text-muted-foreground sm:hidden truncate max-w-[120px]">{row.lesson}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 sm:px-4 py-2.5 text-muted-foreground hidden sm:table-cell max-w-[200px] truncate">{row.lesson}</td>
+                  <td className="px-3 sm:px-4 py-2.5 text-center">
+                    <span className={cn(
+                      "font-bold font-display",
+                      row.score >= 70 ? "text-success" : "text-destructive"
+                    )}>
+                      {row.score}%
+                    </span>
+                  </td>
+                  <td className="px-3 sm:px-4 py-2.5 text-center hidden sm:table-cell">
+                    <div className="flex items-center justify-center gap-1 text-muted-foreground">
+                      <Clock className="w-3 h-3" />
+                      {row.attempts}
+                    </div>
+                  </td>
+                  <td className="px-3 sm:px-4 py-2.5 text-center">
+                    <span className={cn(
+                      "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium",
+                      row.status === "passed"
+                        ? "bg-success/10 text-success"
+                        : "bg-destructive/10 text-destructive"
+                    )}>
+                      {row.status === "passed" ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                      {row.status === "passed" ? "Passed" : "Failed"}
+                    </span>
+                  </td>
+                  <td className="px-3 sm:px-4 py-2.5 text-right text-muted-foreground hidden md:table-cell">{row.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
+
+      {/* Score Trend & Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.6 }}
           className="bg-card rounded-xl p-3 sm:p-4 shadow-card"
         >
           <h3 className="font-display font-bold text-foreground mb-3 sm:mb-4 text-sm sm:text-base">
-            Quiz Performance
+            Score Trends
           </h3>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={analyticsData.modulePerformance}>
@@ -215,7 +268,7 @@ const AdminDashboard = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.7 }}
           className="bg-card rounded-xl p-3 sm:p-4 shadow-card"
         >
           <h3 className="font-display font-bold text-foreground mb-3 sm:mb-4 text-sm sm:text-base">

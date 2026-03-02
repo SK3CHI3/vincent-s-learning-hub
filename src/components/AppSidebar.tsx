@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import {
   LayoutGrid,
   PlayCircle,
-  BarChart3,
   Award,
   User,
   Menu,
@@ -23,7 +22,6 @@ interface AppSidebarProps {
 const allNavItems = [
   { id: "dashboard", icon: LayoutGrid, label: "Dashboard", roles: ["student", "admin"] },
   { id: "lesson", icon: PlayCircle, label: "Lessons", roles: ["student"] },
-  { id: "analytics", icon: BarChart3, label: "Analytics", roles: ["admin"] },
   { id: "certificate", icon: Award, label: "Certificates", roles: ["student"] },
 ];
 
