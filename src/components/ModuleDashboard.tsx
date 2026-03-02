@@ -21,7 +21,7 @@ const ModuleDashboard = ({ onSelectLesson }: ModuleDashboardProps) => {
       </div>
 
       {/* Progress Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {[
           { label: "Modules", value: "1", icon: BookOpen, color: "gradient-primary" },
           { label: "Lessons Completed", value: "1/3", icon: CheckCircle2, color: "gradient-accent" },

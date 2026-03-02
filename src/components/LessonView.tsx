@@ -86,18 +86,82 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
   }, []);
 
   const handleDownloadNotes = () => {
-    // Generate a simple text-based PDF-like download
-    const content = `${lesson.title}\n\nLesson Notes - Vincent AI Training (IDPF)\n\n${lesson.description}\n\nKey Takeaways:\n- Focus on practical, community-based approaches\n- Engage all stakeholders in the learning process\n- Apply leadership principles to real school challenges\n- Build sustainable systems for long-term impact\n\nQuiz Questions:\n${quiz.questions.map((q, i) => `${i + 1}. ${q.question}\n   Answer: ${q.options[q.correctIndex]}\n   ${q.explanation}`).join("\n\n")}`;
-    
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${lesson.title.replace(/\s+/g, "_")}_Notes.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    import("jspdf").then(({ jsPDF }) => {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Header
+      doc.setFillColor(27, 42, 91);
+      doc.rect(0, 0, pageWidth, 35, "F");
+      doc.setTextColor(212, 168, 67);
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text("IDPF - Vincent AI Training", pageWidth / 2, 15, { align: "center" });
+      doc.setFontSize(12);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Lesson Notes", pageWidth / 2, 25, { align: "center" });
+      
+      // Content
+      let y = 45;
+      doc.setTextColor(27, 42, 91);
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text(lesson.title, 15, y);
+      y += 10;
+      
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80, 80, 80);
+      const descLines = doc.splitTextToSize(lesson.description, pageWidth - 30);
+      doc.text(descLines, 15, y);
+      y += descLines.length * 5 + 10;
+      
+      doc.setFontSize(13);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(27, 42, 91);
+      doc.text("Key Takeaways", 15, y);
+      y += 8;
+      
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(60, 60, 60);
+      const takeaways = [
+        "Focus on practical, community-based approaches",
+        "Engage all stakeholders in the learning process",
+        "Apply leadership principles to real school challenges",
+        "Build sustainable systems for long-term impact",
+      ];
+      takeaways.forEach((t) => {
+        doc.text(`•  ${t}`, 18, y);
+        y += 6;
+      });
+      y += 8;
+      
+      doc.setFontSize(13);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(27, 42, 91);
+      doc.text("Quiz Review", 15, y);
+      y += 8;
+      
+      doc.setFontSize(10);
+      quiz.questions.forEach((q, i) => {
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(27, 42, 91);
+        const qLines = doc.splitTextToSize(`${i + 1}. ${q.question}`, pageWidth - 30);
+        doc.text(qLines, 15, y);
+        y += qLines.length * 5 + 3;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(34, 120, 69);
+        doc.text(`Answer: ${q.options[q.correctIndex]}`, 20, y);
+        y += 5;
+        doc.setTextColor(100, 100, 100);
+        const expLines = doc.splitTextToSize(q.explanation, pageWidth - 35);
+        doc.text(expLines, 20, y);
+        y += expLines.length * 5 + 6;
+      });
+      
+      doc.save(`${lesson.title.replace(/\s+/g, "_")}_Notes.pdf`);
+    });
   };
 
   const handleAnswerSelect = (index: number) => {
@@ -239,7 +303,7 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
               </div>
               <div className="min-w-0">
                 <p className="text-xs sm:text-sm font-medium text-foreground">Lesson Notes</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">TXT • Download</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">PDF • Download</p>
               </div>
               <Download className="w-4 h-4 text-muted-foreground ml-auto shrink-0" />
             </button>
