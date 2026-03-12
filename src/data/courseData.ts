@@ -57,6 +57,8 @@ export const modules: Module[] = [
         description: "Understand why financial sustainability matters and how structure strengthens your school's foundation.",
         duration: "4:32",
         thumbnail: lessonThumb1,
+        // To add video: place your .mp4 file in public/videos/ and update the path below
+        videoUrl: "/videos/lesson-1.mp4",
         moduleId: "mod-1",
         order: 1,
       },
@@ -66,6 +68,8 @@ export const modules: Module[] = [
         description: "Learn to track income and spending with clarity so decisions are driven by awareness, not assumption.",
         duration: "3:48",
         thumbnail: lessonThumb2,
+        // To add video: place your .mp4 file in public/videos/ and update the path below
+        videoUrl: "/videos/lesson-2.mp4",
         moduleId: "mod-1",
         order: 2,
       },
@@ -75,6 +79,8 @@ export const modules: Module[] = [
         description: "Build financial preparedness and learn to grow your institution strategically and sustainably.",
         duration: "5:10",
         thumbnail: lessonThumb3,
+        // To add video: place your .mp4 file in public/videos/ and update the path below
+        videoUrl: "/videos/lesson-3.mp4",
         moduleId: "mod-1",
         order: 3,
       },
