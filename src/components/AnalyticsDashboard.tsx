@@ -155,12 +155,12 @@ const AnalyticsDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-card rounded-xl p-4 shadow-card flex flex-col"
+          className="bg-card rounded-xl p-4 shadow-card flex flex-col h-[400px]"
         >
           <h3 className="font-display font-bold text-foreground mb-4">
             Score Trends
           </h3>
-          <div className="flex-1 min-h-[280px]">
+          <div className="flex-1">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={analyticsData.modulePerformance} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
@@ -215,12 +215,12 @@ const AnalyticsDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-card rounded-xl p-4 shadow-card flex flex-col"
+          className="bg-card rounded-xl p-4 shadow-card flex flex-col h-[400px]"
         >
           <h3 className="font-display font-bold text-foreground mb-4">
             Recent Activity
           </h3>
-          <div className="flex-1 space-y-3">
+          <div className="flex-1 space-y-3 overflow-y-auto">
             {analyticsData.recentActivity.map((activity, i) => (
               <div
                 key={i}
