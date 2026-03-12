@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Play,
@@ -18,16 +18,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Lesson, Quiz, QuizQuestion, quizzes } from "@/data/courseData";
+import { Slider } from "@/components/ui/slider";
 
 interface LessonViewProps {
   lesson: Lesson;
   onComplete: () => void;
 }
-
-const parseDuration = (duration: string): number => {
-  const parts = duration.split(":").map(Number);
-  return parts[0] * 60 + parts[1];
-};
 
 const formatTime = (totalSeconds: number): string => {
   const mins = Math.floor(totalSeconds / 60);
@@ -39,34 +35,122 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<boolean[]>([]);
-  const progressInterval = useRef<NodeJS.Timeout | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
 
   const quiz = quizzes[lesson.id];
-  const totalSeconds = parseDuration(lesson.duration);
-  const currentSeconds = (progress / 100) * totalSeconds;
+
+  // Sync video state
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const onTimeUpdate = () => {
+      setCurrentTime(video.currentTime);
+      if (video.duration > 0) {
+        setProgress((video.currentTime / video.duration) * 100);
+      }
+    };
+
+    const onLoadedMetadata = () => {
+      setDuration(video.duration);
+      setVideoError(false);
+    };
+
+    const onEnded = () => {
+      setIsPlaying(false);
+    };
+
+    const onError = () => {
+      setVideoError(true);
+      setIsPlaying(false);
+    };
+
+    video.addEventListener("timeupdate", onTimeUpdate);
+    video.addEventListener("loadedmetadata", onLoadedMetadata);
+    video.addEventListener("ended", onEnded);
+    video.addEventListener("error", onError);
+
+    return () => {
+      video.removeEventListener("timeupdate", onTimeUpdate);
+      video.removeEventListener("loadedmetadata", onLoadedMetadata);
+      video.removeEventListener("ended", onEnded);
+      video.removeEventListener("error", onError);
+    };
+  }, [lesson.videoUrl]);
+
+  // Reset state when lesson changes
+  useEffect(() => {
+    setIsPlaying(false);
+    setProgress(0);
+    setCurrentTime(0);
+    setDuration(0);
+    setVideoError(false);
+    setCurrentQuestion(0);
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setScore(0);
+    setAnsweredQuestions([]);
+  }, [lesson.id]);
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const onFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
 
   const handlePlay = () => {
-    setIsPlaying(!isPlaying);
-    if (!isPlaying) {
-      progressInterval.current = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(progressInterval.current!);
-            setIsPlaying(false);
-            return 100;
-          }
-          return prev + 0.5;
-        });
-      }, 150);
+    const video = videoRef.current;
+    if (!video) return;
+    if (isPlaying) {
+      video.pause();
+      setIsPlaying(false);
     } else {
-      if (progressInterval.current) clearInterval(progressInterval.current);
+      video.play().then(() => setIsPlaying(true)).catch(() => {});
+    }
+  };
+
+  const handleSeek = (value: number[]) => {
+    const video = videoRef.current;
+    if (!video || !video.duration) return;
+    const seekTime = (value[0] / 100) * video.duration;
+    video.currentTime = seekTime;
+    setProgress(value[0]);
+    setCurrentTime(seekTime);
+  };
+
+  const handleVolumeChange = (value: number[]) => {
+    const video = videoRef.current;
+    if (!video) return;
+    const vol = value[0] / 100;
+    video.volume = vol;
+    setVolume(vol);
+    setIsMuted(vol === 0);
+  };
+
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (isMuted) {
+      video.muted = false;
+      video.volume = volume || 1;
+      setIsMuted(false);
+    } else {
+      video.muted = true;
+      setIsMuted(true);
     }
   };
 
@@ -75,10 +159,8 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
     try {
       if (!document.fullscreenElement) {
         await videoContainerRef.current.requestFullscreen();
-        setIsFullscreen(true);
       } else {
         await document.exitFullscreen();
-        setIsFullscreen(false);
       }
     } catch (err) {
       console.log("Fullscreen not supported");
@@ -90,7 +172,6 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       
-      // Header
       doc.setFillColor(27, 42, 91);
       doc.rect(0, 0, pageWidth, 35, "F");
       doc.setTextColor(212, 168, 67);
@@ -101,7 +182,6 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
       doc.setTextColor(255, 255, 255);
       doc.text("Lesson Notes", pageWidth / 2, 25, { align: "center" });
       
-      // Content
       let y = 45;
       doc.setTextColor(27, 42, 91);
       doc.setFontSize(16);
@@ -206,36 +286,61 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
             isFullscreen && "rounded-none"
           )}
         >
-          <img
-            src={lesson.thumbnail}
-            alt={lesson.title}
-            className="w-full aspect-video object-cover"
-          />
-          {/* Play overlay */}
-          <div
-            className="absolute inset-0 flex items-center justify-center cursor-pointer bg-primary/30 group-hover:bg-primary/40 transition-colors"
-            onClick={handlePlay}
-          >
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-accent flex items-center justify-center shadow-glow"
-            >
-              {isPlaying ? (
-                <Pause className="w-6 h-6 sm:w-7 sm:h-7 text-accent-foreground" />
-              ) : (
-                <Play className="w-6 h-6 sm:w-7 sm:h-7 text-accent-foreground ml-1" />
+          {/* Actual video element */}
+          {lesson.videoUrl && !videoError ? (
+            <video
+              ref={videoRef}
+              src={lesson.videoUrl}
+              poster={lesson.thumbnail}
+              className="w-full aspect-video object-cover bg-primary"
+              playsInline
+              preload="metadata"
+              onClick={handlePlay}
+            />
+          ) : (
+            <>
+              <img
+                src={lesson.thumbnail}
+                alt={lesson.title}
+                className="w-full aspect-video object-cover"
+              />
+              {videoError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-primary/70">
+                  <div className="text-center text-primary-foreground">
+                    <p className="text-sm font-medium mb-1">Video not available yet</p>
+                    <p className="text-xs opacity-70">Upload video to public/videos/</p>
+                  </div>
+                </div>
               )}
-            </motion.div>
-          </div>
+            </>
+          )}
+
+          {/* Play overlay - show when paused */}
+          {!isPlaying && (
+            <div
+              className="absolute inset-0 flex items-center justify-center cursor-pointer bg-primary/30 group-hover:bg-primary/40 transition-colors"
+              onClick={handlePlay}
+            >
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-accent flex items-center justify-center shadow-glow"
+              >
+                <Play className="w-6 h-6 sm:w-7 sm:h-7 text-accent-foreground ml-1" />
+              </motion.div>
+            </div>
+          )}
 
           {/* Controls bar */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-primary/90 to-transparent p-3 sm:p-4">
-            {/* Progress */}
-            <div className="w-full h-1 bg-primary-foreground/20 rounded-full mb-2 sm:mb-3 cursor-pointer">
-              <div
-                className="h-full gradient-accent rounded-full transition-all duration-200"
-                style={{ width: `${progress}%` }}
+            {/* Progress - clickable seek bar */}
+            <div className="w-full mb-2 sm:mb-3">
+              <Slider
+                value={[progress]}
+                onValueChange={handleSeek}
+                max={100}
+                step={0.1}
+                className="cursor-pointer [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:border-accent [&_[role=slider]]:bg-accent [&_.relative]:h-1"
               />
             </div>
             <div className="flex items-center justify-between">
@@ -244,9 +349,9 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
                   {isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </button>
                 <span className="text-[10px] sm:text-xs text-primary-foreground/80 font-body">
-                  {formatTime(currentSeconds)} / {lesson.duration}
+                  {formatTime(currentTime)} / {duration > 0 ? formatTime(duration) : lesson.duration}
                 </span>
-                <button onClick={() => setIsMuted(!isMuted)} className="text-primary-foreground hover:text-accent transition-colors">
+                <button onClick={toggleMute} className="text-primary-foreground hover:text-accent transition-colors">
                   {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </button>
               </div>
