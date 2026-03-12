@@ -155,40 +155,72 @@ const AnalyticsDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-card rounded-xl p-4 shadow-card"
+          className="bg-card rounded-xl p-4 shadow-card flex flex-col"
         >
           <h3 className="font-display font-bold text-foreground mb-4">
-            Quiz Performance
+            Score Trends
           </h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={analyticsData.modulePerformance}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 16%, 88%)" />
-              <XAxis dataKey="module" tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" />
-              <YAxis tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" />
-              <Tooltip
-                contentStyle={{
-                  background: "hsl(0, 0%, 100%)",
-                  border: "1px solid hsl(220, 16%, 88%)",
-                  borderRadius: "8px",
-                  fontSize: "12px",
-                }}
-              />
-              <Line type="monotone" dataKey="avgScore" stroke="hsl(224, 52%, 23%)" strokeWidth={2} name="Avg Score" />
-              <Line type="monotone" dataKey="passRate" stroke="hsl(42, 55%, 55%)" strokeWidth={2} name="Pass Rate" />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="flex-1 min-h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={analyticsData.modulePerformance} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis 
+                  dataKey="module" 
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} 
+                  stroke="hsl(var(--border))"
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis 
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} 
+                  stroke="hsl(var(--border))"
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(value) => `${value}%`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "var(--radius)",
+                    fontSize: "12px",
+                  }}
+                  itemStyle={{ color: "hsl(var(--foreground))" }}
+                  labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="avgScore" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth={2.5} 
+                  dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                  name="Avg Score" 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="passRate" 
+                  stroke="hsl(42, 55%, 55%)" 
+                  strokeWidth={2.5} 
+                  dot={{ fill: "hsl(42, 55%, 55%)", strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                  name="Pass Rate" 
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-card rounded-xl p-4 shadow-card"
+          className="bg-card rounded-xl p-4 shadow-card flex flex-col"
         >
           <h3 className="font-display font-bold text-foreground mb-4">
             Recent Activity
           </h3>
-          <div className="space-y-3">
+          <div className="flex-1 space-y-3">
             {analyticsData.recentActivity.map((activity, i) => (
               <div
                 key={i}
