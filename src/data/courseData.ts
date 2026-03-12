@@ -8,6 +8,7 @@ export interface Lesson {
   description: string;
   duration: string;
   thumbnail: string;
+  videoUrl?: string;
   moduleId: string;
   order: number;
 }
