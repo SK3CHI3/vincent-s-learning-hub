@@ -385,6 +385,15 @@ const LessonView = ({ lesson, onComplete }: LessonViewProps) => {
               <button className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors text-xs sm:text-sm">
                 <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
+              {lesson.videoUrl && (
+                <a
+                  href={lesson.videoUrl}
+                  download
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors text-xs sm:text-sm"
+                >
+                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </a>
+              )}
             </div>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground mt-3 leading-relaxed">
